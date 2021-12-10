@@ -1,4 +1,4 @@
-import { BrowserRouter, Switch, Route } from 'react-router-dom';
+import { Switch, Route, HashRouter } from 'react-router-dom';
 import { createGlobalStyle } from 'styled-components';
 import Coin from './routes/Coin';
 import Coins from './routes/Coins';
