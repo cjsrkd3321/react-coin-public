@@ -35,7 +35,7 @@ function App() {
           {`To ${themeMode.toUpperCase()}`}
         </ThemeBtn>
         {/* Fragments 일종의 유령 컴포넌트 */}
-        <Router />
+        <Router basename={process.env.PUBLIC_URL} />
       </ThemeProvider>
       <ReactQueryDevtools initialIsOpen={true}></ReactQueryDevtools>
     </>
