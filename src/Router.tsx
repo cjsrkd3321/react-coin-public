@@ -64,7 +64,7 @@ a {
 
 function Router() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <GlobalStyle />
       <Switch>
         <Route path='/:coinId'>
@@ -74,7 +74,7 @@ function Router() {
           <Coins />
         </Route>
       </Switch>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
 
