@@ -1,10 +1,10 @@
 {
   "files": {
-    "main.js": "/react-coin-public.git/static/js/main.e2339db4.js",
-    "index.html": "/react-coin-public.git/index.html",
-    "main.e2339db4.js.map": "/react-coin-public.git/static/js/main.e2339db4.js.map"
+    "main.js": "/react-coin-public/static/js/main.1b580e6c.js",
+    "index.html": "/react-coin-public/index.html",
+    "main.1b580e6c.js.map": "/react-coin-public/static/js/main.1b580e6c.js.map"
   },
   "entrypoints": [
-    "static/js/main.e2339db4.js"
+    "static/js/main.1b580e6c.js"
   ]
 }
