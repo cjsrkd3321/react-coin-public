@@ -1,14 +1,13 @@
+import ReactApexChart from 'react-apexcharts';
 import { useQuery } from 'react-query';
+import { useOutletContext } from 'react-router-dom';
+import { useRecoilValue } from 'recoil';
 import { fetchCoinHistory } from '../api';
-import ApexChart from 'react-apexcharts';
+import { isDarkAtom } from '../atom';
 
-interface IChartProps {
-  coinId: string;
-}
-
-interface IHistoricalData {
-  time_open: Date;
-  time_close: Date;
+interface IHistorical {
+  time_open: string;
+  time_close: string;
   open: number;
   high: number;
   low: number;
@@ -17,21 +16,26 @@ interface IHistoricalData {
   market_cap: number;
 }
 
-function Chart({ coinId }: IChartProps) {
-  const { isLoading, data } = useQuery<IHistoricalData[]>(
+interface IChartProps {
+  coinId: string;
+}
+
+function Chart() {
+  const isDark = useRecoilValue(isDarkAtom);
+  const { coinId } = useOutletContext<IChartProps>();
+  const { isLoading, data } = useQuery<IHistorical[]>(
     ['ohlcv', coinId],
     () => fetchCoinHistory(coinId),
     {
-      refetchInterval: 10000,
+      refetchInterval: 10_000,
     }
   );
-
   return (
     <div>
       {isLoading ? (
         'Loading chart...'
       ) : (
-        <ApexChart
+        <ReactApexChart
           type='candlestick'
           series={[
             {
@@ -44,26 +48,36 @@ function Chart({ coinId }: IChartProps) {
             },
           ]}
           options={{
+            theme: {
+              mode: isDark ? 'dark' : 'light',
+            },
             chart: {
               type: 'candlestick',
-              toolbar: {
-                show: false,
-              },
+              height: 300,
               width: 500,
-              height: 500,
+              toolbar: {
+                show: true,
+              },
               background: 'transparent',
             },
             grid: { show: false },
-            xaxis: {
-              type: 'datetime',
-              axisTicks: { show: false },
-              labels: { show: false },
-              axisBorder: { show: false },
+            stroke: {
+              curve: 'smooth',
+              width: 4,
             },
             yaxis: {
               show: false,
-              tooltip: {
-                enabled: true,
+            },
+            xaxis: {
+              axisBorder: { show: true },
+              axisTicks: { show: false },
+              labels: { show: true },
+              type: 'datetime',
+              categories: data?.map((price) => price.time_close),
+            },
+            tooltip: {
+              y: {
+                formatter: (value) => `$${value.toFixed(2)}`,
               },
             },
           }}

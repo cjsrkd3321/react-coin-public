@@ -1,50 +1,66 @@
+import { useOutletContext } from 'react-router-dom';
 import styled from 'styled-components';
-import View from '../common-component/View';
-import { IPriceData } from '../Interface';
+import { IPriceData } from '../interfaces/common';
 
 const Container = styled.div`
-  padding: 0px 20px;
   max-width: 480px;
   margin: 0 auto;
 `;
+
+const Overview = styled.div`
+  width: ;
+  display: flex;
+  justify-content: space-between;
+  background-color: ${(props) => props.theme.cardBgColor};
+  padding: 10px 20px;
+  border-radius: 10px;
+  margin: 25px 0px;
+`;
+
+const OverviewItem = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 50%;
+
+  span:first-child {
+    font-size: 10px;
+    font-weight: 400;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+  }
+`;
+
 interface IPriceProps {
-  coinId: string;
-  tickerData?: IPriceData;
+  tickersData?: IPriceData;
 }
 
-function Price({ coinId, tickerData }: IPriceProps) {
+function Price() {
+  const { tickersData } = useOutletContext<IPriceProps>();
   return (
     <Container>
-      <View
-        isCenter
-        comment={`ALL TIME HIGH : `}
-        text={`${tickerData?.quotes.USD.ath_price.toFixed(4)}`}
-      />
-      <View
-        isCenter
-        comment={`ALL TIME DATE : `}
-        text={`${tickerData?.quotes.USD.ath_date}`}
-      />
-      <View
-        isCenter
-        comment={`Change in Last 1Y : `}
-        text={`${tickerData?.quotes.USD.percent_change_1y}%`}
-      />
-      <View
-        isCenter
-        comment={`Change in Last 30D : `}
-        text={`${tickerData?.quotes.USD.percent_change_30d}%`}
-      />
-      <View
-        isCenter
-        comment={`Change in Last 7D : `}
-        text={`${tickerData?.quotes.USD.percent_change_7d}%`}
-      />
-      <View
-        isCenter
-        comment={`Change in Last 24H : `}
-        text={`${tickerData?.quotes.USD.percent_change_24h}%`}
-      />
+      <Overview>
+        <OverviewItem>
+          <span>All Time High Price:</span>
+          <span>{tickersData?.quotes.USD.ath_price}</span>
+        </OverviewItem>
+        <OverviewItem>
+          <span>All Time Date:</span>
+          <span>{tickersData?.quotes.USD.ath_date.split('T')[0]}</span>
+        </OverviewItem>
+      </Overview>
+      <Overview>
+        <OverviewItem>
+          <span>Percent From ATH Price:</span>
+          <span>{tickersData?.quotes.USD.percent_from_price_ath}%</span>
+        </OverviewItem>
+        <OverviewItem>
+          <span>Market CAP:</span>
+          <span>
+            ${tickersData?.quotes.USD.market_cap.toLocaleString('en-US')}
+          </span>
+        </OverviewItem>
+      </Overview>
     </Container>
   );
 }

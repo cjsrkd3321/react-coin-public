@@ -1,6 +1,5 @@
-// import { useEffect, useState } from 'react';
+import { Helmet, HelmetProvider } from 'react-helmet-async';
 import { useQuery } from 'react-query';
-import { Helmet } from 'react-helmet';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { fetchCoins } from '../api';
@@ -12,7 +11,7 @@ const Container = styled.div`
 `;
 
 const Header = styled.header`
-  height: 10vh;
+  height: 15vh;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -21,15 +20,16 @@ const Header = styled.header`
 const CoinsList = styled.ul``;
 
 const Coin = styled.li`
-  background-color: ${(props) => props.theme.textColor};
-  color: ${(props) => props.theme.bgColor};
-  margin-bottom: 10px;
+  background-color: ${(props) => props.theme.cardBgColor};
+  color: ${(props) => props.theme.textColor};
   border-radius: 15px;
+  margin-bottom: 10px;
+  border: 1px solid white;
   a {
-    display: flex;
-    align-items: center;
     padding: 20px;
     transition: color 0.2s ease-in;
+    display: flex;
+    align-items: center;
   }
   &:hover {
     a {
@@ -40,6 +40,7 @@ const Coin = styled.li`
 
 const Title = styled.h1`
   font-size: 48px;
+  font-weight: 400;
   color: ${(props) => props.theme.accentColor};
 `;
 
@@ -54,7 +55,7 @@ const Img = styled.img`
   margin-right: 10px;
 `;
 
-interface ICoin {
+export interface ICoin {
   id: string;
   name: string;
   symbol: string;
@@ -65,27 +66,16 @@ interface ICoin {
 }
 
 function Coins() {
-  // const [coins, setCoins] = useState<ICoin[]>([]);
-  // const [loading, setLoading] = useState(true);
-  // useEffect(() => {
-  //   (async () => {
-  //     const response = await fetch('https://api.coinpaprika.com/v1/coins');
-  //     const json = await response.json();
-  //     setCoins(json.slice(0, 10));
-  //     setLoading(false);
-  //   })();
-  // }, []);
-
-  // react-query가 데이터를 캐시에 저장해둠 (ㄸ);;
   const { isLoading, data } = useQuery<ICoin[]>('allCoins', fetchCoins);
-
   return (
     <Container>
-      <Helmet>
-        <title>코인</title>
-      </Helmet>
+      <HelmetProvider>
+        <Helmet>
+          <title>코인목록</title>
+        </Helmet>
+      </HelmetProvider>
       <Header>
-        <Title>코인</Title>
+        <Title>코인목록</Title>
       </Header>
       {isLoading ? (
         <Loader>Loading...</Loader>
@@ -93,12 +83,7 @@ function Coins() {
         <CoinsList>
           {data?.slice(0, 100).map((coin) => (
             <Coin key={coin.id}>
-              <Link
-                to={{
-                  pathname: `/${coin.id}`,
-                  state: { name: coin.name },
-                }}
-              >
+              <Link to={`/${coin.id}`} state={{ coin }}>
                 <Img
                   src={`https://cryptoicon-api.vercel.app/api/icon/${coin.symbol.toLowerCase()}`}
                 />

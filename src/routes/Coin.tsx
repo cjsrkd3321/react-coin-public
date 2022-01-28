@@ -1,64 +1,20 @@
-// import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Helmet } from 'react-helmet';
-import {
-  Switch,
-  Route,
-  useParams,
-  useLocation,
-  useRouteMatch,
-} from 'react-router';
-import styled from 'styled-components';
-import Chart from './Chart';
-import Price from './Price';
+import { Helmet, HelmetProvider } from 'react-helmet-async';
 import { useQuery } from 'react-query';
+import {
+  Link,
+  Outlet,
+  useLocation,
+  useMatch,
+  useParams,
+} from 'react-router-dom';
+import styled from 'styled-components';
 import { fetchCoinInfo, fetchCoinTickers } from '../api';
-import { IInfoData, IPriceData, Params } from '../Interface';
+import { IPriceData } from '../interfaces/common';
+import { ICoin } from './Coins';
 
 const Title = styled.h1`
   font-size: 48px;
   color: ${(props) => props.theme.accentColor};
-`;
-
-const BackBtn = styled.button`
-  position: fixed;
-  font-size: 16px;
-  top: 20px;
-  left: 25px;
-  background-color: ${(props) => props.theme.bgColor};
-  color: ${(props) => props.theme.textColor};
-  border-color: ${(props) => props.theme.bgColor};
-  border-style: none;
-  &:active {
-    border-style: outset;
-  }
-`;
-
-const OverView = styled.div`
-  display: flex;
-  justify-content: space-between;
-  background-color: ${(props) => props.theme.textColor};
-  padding: 10px 20px;
-  border-radius: 10px;
-`;
-
-const OverViewItem = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  color: ${(props) => props.theme.bgColor};
-  /* width: 33%; */
-
-  span: first-child {
-    font-size: 10px;
-    font-weight: 400;
-    text-transform: uppercase;
-    margin-bottom: 5px;
-  }
-`;
-
-const Description = styled.p`
-  margin: 20px 0px;
 `;
 
 const Loader = styled.span`
@@ -79,6 +35,32 @@ const Header = styled.header`
   align-items: center;
 `;
 
+const Overview = styled.div`
+  display: flex;
+  justify-content: space-between;
+  background-color: ${(props) => props.theme.cardBgColor};
+  padding: 10px 20px;
+  border-radius: 10px;
+`;
+
+const OverviewItem = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 33%;
+
+  span:first-child {
+    font-size: 10px;
+    font-weight: 400;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+  }
+`;
+
+const Description = styled.p`
+  margin: 20px 0px;
+`;
+
 const Tabs = styled.div`
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -91,135 +73,136 @@ const Tab = styled.span<{ isActive: boolean }>`
   text-transform: uppercase;
   font-size: 12px;
   font-weight: 400;
-  background-color: ${(props) => props.theme.textColor};
-  padding: 7px 0px;
+  background-color: ${(props) => props.theme.cardBgColor};
   border-radius: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   color: ${(props) =>
-    props.isActive ? props.theme.accentColor : props.theme.bgColor};
+    props.isActive ? props.theme.accentColor : props.theme.textColor};
   a {
-    padding: 7px 0px;
+    width: 100%;
+    padding: 10px;
     display: block;
   }
 `;
 
-interface RouteState {
+const HomeBtn = styled(Tabs)`
+  grid-template-columns: repeat(1, 1fr);
+`;
+
+interface IRouteState {
+  state: {
+    coin: ICoin;
+  };
+}
+
+interface IInfoData {
+  id: string;
   name: string;
+  symbol: string;
+  rank: number;
+  is_new: boolean;
+  is_active: boolean;
+  type: string;
+  description: string;
+  message: string;
+  open_source: boolean;
+  started_at: string;
+  development_status: string;
+  hardware_wallet: boolean;
+  proof_type: string;
+  org_structure: string;
+  hash_algorithm: string;
+  first_data_at: string;
+  last_data_at: string;
 }
 
 function Coin() {
-  // eslint-disable-next-line
-  const { coinId } = useParams<Params>();
-  const { state } = useLocation<RouteState>();
-  // const [loading, setLoading] = useState(true);
-  // const [info, setInfo] = useState<IInfoData>();
-  // const [priceInfo, setPriceInfo] = useState<IPriceData>();
-  const priceMatch = useRouteMatch('/:coinId/price');
-  const chartMatch = useRouteMatch('/:coinId/chart');
-
-  // useEffect(() => {
-  //   (async () => {
-  //     // ttps://api.coinpaprika.com/v1/coins/btc-bitcoin
-  //     // https://api.coinpaprika.com/v1/tickers/btc-bitcoin
-  //     const infoData = await (
-  //       await fetch(`https://api.coinpaprika.com/v1/coins/${coinId}`)
-  //     ).json();
-
-  //     const priceData = await (
-  //       await fetch(`https://api.coinpaprika.com/v1/tickers/${coinId}`)
-  //     ).json();
-
-  //     setInfo(infoData);
-  //     setPriceInfo(priceData);
-  //     setLoading(false);
-  //   })();
-  // }, [coinId]); // coinId 가 뼌하면 훅을 다시 실행
-
-  const { isLoading: infoLoading, data: infoData } = useQuery<IInfoData>(
+  const { coinId } = useParams();
+  const { state } = useLocation() as IRouteState;
+  const priceMatch = useMatch('/:coinId/price');
+  const chartMatch = useMatch('/:coinId/chart');
+  const { isLoading: infoLoading, data: IinfoData } = useQuery<IInfoData>(
     ['info', coinId],
-    () => fetchCoinInfo(coinId),
-    {
-      refetchInterval: 5000,
-    }
+    () => fetchCoinInfo(coinId!)
   );
-
-  const { isLoading: tickerLoading, data: tickerData } = useQuery<IPriceData>(
+  const { isLoading: tickersLoading, data: tickersData } = useQuery<IPriceData>(
     ['tickers', coinId],
-    () => fetchCoinTickers(coinId),
-    {
-      refetchInterval: 5000,
-    }
+    () => fetchCoinTickers(coinId!),
+    { refetchInterval: 5_000 }
   );
-
-  const loading = infoLoading && tickerLoading;
-
+  const loading = infoLoading || tickersLoading;
   return (
     <Container>
-      <Helmet>
-        <title>
-          {state?.name ? state.name : loading ? 'Loading...' : infoData?.name}
-        </title>
-      </Helmet>
+      <HelmetProvider>
+        <Helmet>
+          <title>
+            {state?.coin.name
+              ? state.coin.name
+              : loading
+              ? 'Loading...'
+              : IinfoData?.name}
+          </title>
+        </Helmet>
+      </HelmetProvider>
+
       <Header>
-        <BackBtn>
-          <Link to={`/`}>Back</Link>
-        </BackBtn>
         <Title>
-          {state?.name ? state.name : loading ? 'Loading...' : infoData?.name}
+          {state?.coin.name
+            ? state.coin.name
+            : loading
+            ? 'Loading...'
+            : IinfoData?.name}
         </Title>
       </Header>
+
+      <HomeBtn>
+        <Tab isActive>
+          <Link to='/'>HOME</Link>
+        </Tab>
+      </HomeBtn>
+
       {loading ? (
         <Loader>Loading...</Loader>
       ) : (
         <>
-          <OverView>
-            <OverViewItem>
+          <Overview>
+            <OverviewItem>
               <span>Rank:</span>
-              <span>{infoData?.rank}</span>
-            </OverViewItem>
-            <OverViewItem>
+              <span>{IinfoData?.rank}</span>
+            </OverviewItem>
+            <OverviewItem>
               <span>Symbol:</span>
-              <span>{infoData?.symbol}</span>
-            </OverViewItem>
-            <OverViewItem>
-              <span>Open Source:</span>
-              <span>{infoData?.open_source ? 'Yes' : 'No'}</span>
-            </OverViewItem>
-          </OverView>
-          <Description>{infoData?.description}</Description>
-          <OverView>
-            <OverViewItem>
+              <span>{IinfoData?.symbol}</span>
+            </OverviewItem>
+            <OverviewItem>
+              <span>Price:</span>
+              <span>${tickersData?.quotes.USD.price.toFixed(3)}</span>
+            </OverviewItem>
+          </Overview>
+          <Description>{IinfoData?.description}</Description>
+          <Overview>
+            <OverviewItem>
               <span>Total Suply:</span>
-              <span>{tickerData?.total_supply}</span>
-            </OverViewItem>
-            <OverViewItem>
-              <span>Current Price:</span>
-              <span>{`$${(tickerData?.quotes?.USD?.price ?? 0).toFixed(
-                4
-              )}`}</span>
-            </OverViewItem>
-            <OverViewItem>
+              <span>{tickersData?.total_supply}</span>
+            </OverviewItem>
+            <OverviewItem>
               <span>Max Supply:</span>
-              <span>{tickerData?.max_supply}</span>
-            </OverViewItem>
-          </OverView>
+              <span>{tickersData?.max_supply}</span>
+            </OverviewItem>
+          </Overview>
 
           <Tabs>
             <Tab isActive={chartMatch !== null}>
-              <Link to={`/${coinId}/chart`}>Chart</Link>
+              <Link to={'chart'}>Cahrt</Link>
             </Tab>
             <Tab isActive={priceMatch !== null}>
-              <Link to={`/${coinId}/price`}>Price</Link>
+              <Link to={'price'}>Price</Link>
             </Tab>
           </Tabs>
 
-          <Switch>
-            <Route path={`/:coinId/price`}>
-              <Price coinId={coinId} tickerData={tickerData} />
-            </Route>
-            <Route path={`/:coinId/chart`}>
-              <Chart coinId={coinId} />
-            </Route>
-          </Switch>
+          <Outlet context={{ coinId, tickersData }} />
         </>
       )}
     </Container>
